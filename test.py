@@ -9,11 +9,20 @@ import socket
 BD_ADDR = "00:1F:F0:24:2D:AC"
 UUID = "00001101-0000-1000-8000-00805f9b34fb"
 
-# AAAA BBBB CCCC DD EE FF
+# AABB CCDD EEEE FFFF G....G
+
+# A = SOF always 0xFF
+# B = GAIA protocol version
+# C = Flags from Flag.java
+# D = Packet Length
+# E = Vendor ID found in VendorIDs.java IE 0b9e
+# F = (Feature ID << 9) | (V3 Packet Type << 7) | (Actual ID)
+# G = Payload
 
 '''
 ff04 0001 0b9e 02 00 00 - Gaming mode Off
 ff04 0001 0b9e 00 0e 00 - Ambient Noise Off
+ff04 0001 0b9e 00 0e 00
 
 ff04 0000 0b9e 00 10 - Question, what is the current ANC mode
 ff03 0001 0b9e 01 10 01 - Reply, ANC is set to 01 (ANC On)

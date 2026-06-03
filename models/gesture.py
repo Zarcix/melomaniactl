@@ -1,0 +1,9 @@
+from enum import Enum
+
+class Gesture(Enum):
+    GET_SUPPORTED_GESTURE_CONTROLS = 0
+
+    GET_GESTURE_CONTROLS_ON_OFF = 1
+    SET_GESTURE_CONTROLS_ON_OFF = 2
+
+    SET_GESTURE_CONTROL_ON_OFF = 3
