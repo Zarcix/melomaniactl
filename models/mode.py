@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Self
 
 class Mode(Enum):
     SET_GAMING_MODE = 0
@@ -17,3 +18,11 @@ class Mode(Enum):
 
     SET_SLEEP_MODE = 10
     GET_SLEEP_MODE = 11
+
+    @classmethod
+    def from_name(cls, name: str) -> Self:
+        try:
+            return cls[name.upper()]
+        except KeyError:
+            # Handle the case where the name doesn't exist
+            raise ValueError(f"{name} is not a valid {cls.__name__}")

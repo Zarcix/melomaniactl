@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Self
 
 class Misc(Enum):
     GET_MANUFACTURER = 0
@@ -37,3 +38,11 @@ class Misc(Enum):
 
     SET_SIDE_TONE = 25
     GET_SIDE_TONE = 26
+
+    @classmethod
+    def from_name(cls, name: str) -> Self:
+        try:
+            return cls[name.upper()]
+        except KeyError:
+            # Handle the case where the name doesn't exist
+            raise ValueError(f"{name} is not a valid {cls.__name__}")

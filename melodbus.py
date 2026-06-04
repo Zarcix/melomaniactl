@@ -2,9 +2,12 @@
 import dbus
 import dbus.service
 import dbus.mainloop.glib
-from gi.repository import GLib
 import bluetooth
 import socket
+
+from gi.repository import GLib
+from models import Feature, Packet
+
 
 BD_ADDR = "00:1F:F0:24:2D:AC"
 UUID = "00001101-0000-1000-8000-00805f9b34fb"
@@ -42,6 +45,8 @@ ff03 0001 0b9e 01 06 00 - Reply, Language is currently Tones
 ff04 0008 0b9e 00 06 00 00 00 00 00 00 00 00 - Question, what is the current language?
 ff03 0001 0b9e 01 06 00 - Reply, Language is currently Tones
 
+ff04 0000 0b9e 02 05
+ff03 0002 0b9e 07 00 ff ff
 '''
 
 
@@ -60,35 +65,55 @@ CONTROL_MAP = {
     "WEAR_DETECTION__Y": "ff0400010b9e020601",
 }
 
+
 class BudsControlService(dbus.service.Object):
-    def __init__(self, bus, object_path="/com/example/BudsControl"):
+    def __init__(self, bus, object_path="/com/meloadapter/MeloControl"):
         super().__init__(bus, object_path)
         self.sock = None
         self.connect_device()
 
+    def on_data_received(self, source, condition):
+        try:
+            data = self.sock.recv(1024)
+            if not data:
+                return False
+            hex_str = data.hex()
+            packet = Packet.from_hex(hex_str)
+            print(f"Received Packet: {packet}")
+        except BlockingIOError:
+            pass
+        return True
+
     def connect_device(self):
         print(f"Discovering SPP service on {BD_ADDR}...")
+
         services = bluetooth.find_service(uuid=UUID, address=BD_ADDR)
         if not services:
             raise RuntimeError("No RFCOMM service found on this device")
+
         port = services[0]["port"]
         print(f"Connecting to {BD_ADDR} on RFCOMM port {port}...")
+
         self.sock = socket.socket(socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_RFCOMM)
         self.sock.connect((BD_ADDR, port))
+
+        self.sock.setblocking(False)
+        GLib.io_add_watch(self.sock.fileno(), GLib.IO_IN, self.on_data_received)
+
         print("Connected successfully.")
 
-    @dbus.service.method("com.example.BudsControl", in_signature="s")
-    def SendCommand(self, cmd_name):
-        if cmd_name not in CONTROL_MAP:
-            raise ValueError(f"Unknown command: {cmd_name}")
-        if not self.sock:
-            raise RuntimeError("Device not connected")
-        packet = bytes.fromhex(CONTROL_MAP[cmd_name])
-        breakpoint()
-        self.sock.send(packet)
-        print(f"Sent {cmd_name}: {CONTROL_MAP[cmd_name]}")
+    @dbus.service.method("com.meloadapter.MeloControl", in_signature="sss")
+    def SendCommand(self, feature_str: str, subfeature_str: str, payload_str: str):
+        feature = Feature.from_name(feature_str)
+        subfeature = feature.subfeature_cls.from_name(subfeature_str)
+        payload = int(payload_str) if payload_str != "" else None
 
-    @dbus.service.method("com.example.BudsControl")
+        packet = Packet.from_command(feature, subfeature, payload)
+        payload = packet.to_hex()
+        self.sock.send(payload)
+        print(f"Sent {packet}")
+
+    @dbus.service.method("com.meloadapter.MeloControl")
     def Disconnect(self):
         if self.sock:
             self.sock.close()
@@ -100,11 +125,11 @@ def main():
     bus = dbus.SessionBus()
 
     # <<< REQUEST A BUS NAME
-    bus_name = dbus.service.BusName("com.example.BudsControl", bus=bus)
-    service = BudsControlService(bus, object_path="/com/example/BudsControl")
+    bus_name = dbus.service.BusName("com.meloadapter.MeloControl", bus=bus)
+    service = BudsControlService(bus, object_path="/com/meloadapter/MeloControl")
 
     loop = GLib.MainLoop()
-    print("BudsControl DBus service running...")
+    print("MeloControl DBus service running...")
     loop.run()
 
 if __name__ == "__main__":
