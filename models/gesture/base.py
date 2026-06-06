@@ -1,6 +1,8 @@
 from enum import Enum
 from typing import Self
 
+from .gesture import Gesture
+
 class GestureIds(Enum):
     GET_SUPPORTED_GESTURE_CONTROLS = 0
 
@@ -16,3 +18,7 @@ class GestureIds(Enum):
         except KeyError:
             # Handle the case where the name doesn't exist
             raise ValueError(f"{name} is not a valid {cls.__name__}")
+
+    @property
+    def payload_parser(self) -> Gesture:
+        return Gesture
