@@ -49,23 +49,6 @@ ff04 0000 0b9e 02 05
 ff03 0002 0b9e 07 00 ff ff
 '''
 
-
-CONTROL_MAP = {
-    "GAMING_MODE__N": "ff0400010b9e020000",
-    "GAMING_MODE__Y": "ff04 0001 0b9e 02 00 01",
-
-    "AMBIENT_NOISE_CONTROL__NORMAL": "ff0400010b9e000e00",
-    "AMBIENT_NOISE_CONTROL__NOISE_CANCELLING": "ff0400010b9e000e01",
-    "AMBIENT_NOISE_CONTROL__TRANSPARENCY": "ff0400010b9e000e02",
-
-    "DYNA_EQ__N": "ff0400010b9e001400",
-    "DYNA_EQ__Y": "ff0400010b9e001401",
-
-    "WEAR_DETECTION__N": "ff0400010b9e020600",
-    "WEAR_DETECTION__Y": "ff0400010b9e020601",
-}
-
-
 class BudsControlService(dbus.service.Object):
     def __init__(self, bus, object_path="/com/meloadapter/MeloControl"):
         super().__init__(bus, object_path)
@@ -73,15 +56,27 @@ class BudsControlService(dbus.service.Object):
         self.connect_device()
 
     def on_data_received(self, source, condition):
-        try:
-            data = self.sock.recv(1024)
-            if not data:
-                return False
-            hex_str = data.hex()
-            packet = Packet.from_hex(hex_str)
-            print(f"Received Packet: {packet}")
-        except BlockingIOError:
-            pass
+        buffer = bytearray()
+
+        data = self.sock.recv(8 + 0xFF)
+        if not data: return False
+        buffer.extend(data)
+
+        # Keep processing data in case multiple packets have been sent as 1
+        while len(buffer) >= 8:
+            if buffer[0] != 0xFF:
+                buffer.pop(0)
+                print("Invalid Packet. No SOF Value")
+
+            payload_len = buffer[3]
+            total_len = 8 + payload_len
+
+            packet_hex = bytes(buffer[:total_len]).hex()
+            del buffer[:total_len]
+
+            packet = Packet.from_hex(packet_hex)
+            print(packet)
+
         return True
 
     def connect_device(self):
@@ -103,10 +98,11 @@ class BudsControlService(dbus.service.Object):
         print("Connected successfully.")
 
     @dbus.service.method("com.meloadapter.MeloControl", in_signature="sss")
+    # Payload Str: "int int int"
     def SendCommand(self, feature_str: str, subfeature_str: str, payload_str: str):
         feature = Feature.from_name(feature_str)
         subfeature = feature.subfeature_cls.from_name(subfeature_str)
-        payload = int(payload_str) if payload_str != "" else None
+        payload = [int(val) for val in payload_str.split(" ")] if payload_str != "" else []
 
         packet = Packet.from_command(feature, subfeature, payload)
         payload = packet.to_hex()
