@@ -1,1 +1,1 @@
-from .base import ModeIds
+from .ids import ModeIds

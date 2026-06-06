@@ -1,14 +1,21 @@
 from enum import Enum
-from typing import Self
+from typing import Self, Tuple
 
-from .gaming_mode import GamingMode
-from .proximity_mode import ProximityMode
-from .flight_mode import FlightMode
-from .mono_mode import MonoMode
-from .sleep_mode import SleepMode
 from .audio_mode import AudioMode
+from .flight_mode import FlightMode
+from .gaming_mode import GamingMode
+from .mono_mode import MonoMode
+from .proximity_mode import ProximityMode
+from .sleep_mode import SleepMode
 
-type PayloadParsers = GamingMode | ProximityMode
+type PayloadParsers = Tuple[
+    AudioMode,
+    FlightMode,
+    GamingMode,
+    MonoMode,
+    ProximityMode,
+    SleepMode,
+]
 
 class ModeIds(Enum):
     SET_GAMING_MODE = 0
@@ -51,3 +58,5 @@ class ModeIds(Enum):
                 return SleepMode
             case self.GET_AUDIO_MODE:
                 return AudioMode
+
+        raise ValueError(f"Mode Payload Parser Not Found. Type={self.name}")

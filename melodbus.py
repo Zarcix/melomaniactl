@@ -107,7 +107,6 @@ class BudsControlService(dbus.service.Object):
         packet = Packet.from_command(feature, subfeature, payload)
         payload = packet.to_hex()
         self.sock.send(payload)
-        print(f"Sent {packet}")
 
     @dbus.service.method("com.meloadapter.MeloControl")
     def Disconnect(self):
