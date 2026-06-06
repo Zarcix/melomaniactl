@@ -6,7 +6,7 @@ import bluetooth
 import socket
 
 from gi.repository import GLib
-from models import Feature, Packet
+from models import FeatureIds, Packet
 
 
 BD_ADDR = "00:1F:F0:24:2D:AC"
@@ -100,7 +100,7 @@ class BudsControlService(dbus.service.Object):
     @dbus.service.method("com.meloadapter.MeloControl", in_signature="sss")
     # Payload Str: "int int int"
     def SendCommand(self, feature_str: str, subfeature_str: str, payload_str: str):
-        feature = Feature.from_name(feature_str)
+        feature = FeatureIds.from_name(feature_str)
         subfeature = feature.subfeature_cls.from_name(subfeature_str)
         payload = [int(val) for val in payload_str.split(" ")] if payload_str != "" else []
 

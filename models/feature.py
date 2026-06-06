@@ -1,17 +1,17 @@
 from enum import Enum
 from typing import Type
 
-from .misc import Misc
-from .mode import Mode
-from .codec import Codec
-from .gesture import Gesture
+from .misc import MiscIds
+from .mode import ModeIds
+from .codec import CodecIds
+from .gesture import GestureIds
 
-class Feature(Enum):
+class FeatureIds(Enum):
     # The tuple is passed to __new__
-    MISC = (0, Misc)
-    MODE = (1, Mode)
-    CODEC = (2, Codec)
-    GESTURE = (3, Gesture)
+    MISC = (0, MiscIds)
+    MODE = (1, ModeIds)
+    CODEC = (2, CodecIds)
+    GESTURE = (3, GestureIds)
 
     def __new__(cls, value: int, subfeature_cls: Type):
         obj = object.__new__(cls)
@@ -22,5 +22,5 @@ class Feature(Enum):
         return obj
 
     @classmethod
-    def from_name(cls, name: str) -> 'Feature':
+    def from_name(cls, name: str) -> FeatureIds:
         return cls[name.upper()]

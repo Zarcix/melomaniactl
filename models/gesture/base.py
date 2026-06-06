@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Self
 
-class Gesture(Enum):
+class GestureIds(Enum):
     GET_SUPPORTED_GESTURE_CONTROLS = 0
 
     GET_GESTURE_CONTROLS_ON_OFF = 1

@@ -1,8 +1,8 @@
-from .feature import Feature
+from .feature import FeatureIds
 
-from .codec import Codec
-from .misc import Misc
-from .mode import Mode
-from .gesture import Gesture
+from .codec import CodecIds
+from .misc import MiscIds
+from .mode import ModeIds
+from .gesture import GestureIds
 
 from .packet import Packet

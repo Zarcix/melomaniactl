@@ -1,5 +1,5 @@
 from enum import Enum
-from models import Feature, Codec, Misc, Mode
+from models import FeatureIds, CodecIds, MiscIds, ModeIds, GestureIds
 from typing import Optional, Self, Iterable
 
 import math
@@ -38,14 +38,14 @@ class Packet:
     packet_dir: PacketDirection
     flags: PacketFlags
     packet_type: PacketTypes
-    feature_id: Feature
-    subfeature_id: Codec | Feature | Mode | Misc
+    feature_id: FeatureIds
+    subfeature_id: CodecIds | FeatureIds | ModeIds | MiscIds
     payload: Iterable[int] # This needs to be iterable since "00 01 01" is valid with a length of 3
 
     def __init__(
         self,
-        feature_id: Feature,
-        subfeature_id: Codec | Feature | Mode | Misc,
+        feature_id: FeatureIds,
+        subfeature_id: CodecIds | FeatureIds | ModeIds | MiscIds,
         payload: Iterable[int],
         packet_type: PacketTypes,
         packet_direction: PacketDirection,
@@ -71,8 +71,8 @@ class Packet:
     @classmethod
     def from_command(
             cls,
-            feature_id: Feature,
-            subfeature_id: Codec | Feature | Mode | Misc,
+            feature_id: FeatureIds,
+            subfeature_id: CodecIds | FeatureIds | ModeIds | MiscIds,
             payload: Iterable[int]
         ) -> Self:
         return cls(feature_id, subfeature_id, payload, PacketTypes.COMMAND, PacketDirection.SEND, PacketFlags.NONE)
@@ -90,7 +90,7 @@ class Packet:
         command = _int_from_hexstr(hex_str[12:16])
         payload = [int(val, 16) for val in bytes.fromhex(hex_str[16:]).hex(" ").split()]
 
-        feature = Feature(command >> 9 & 0x7f)
+        feature = FeatureIds(command >> 9 & 0x7f)
         packet_type = PacketTypes(command >> 7 & 0x03)
         subfeature = feature.subfeature_cls(command & 0x7f)
 

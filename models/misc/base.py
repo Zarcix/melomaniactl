@@ -1,7 +1,13 @@
 from enum import Enum
-from typing import Self
+from typing import Self, Tuple
 
-class Misc(Enum):
+from .language import Language
+
+type PayloadParsers = Tuple[
+    Language,
+]
+
+class MiscIds(Enum):
     GET_MANUFACTURER = 0
     GET_MODEL = 1
     GET_API_LEVEL = 2
@@ -26,6 +32,7 @@ class Misc(Enum):
     GET_AMBIENT_NOISE_MODE = 16
 
     GET_VARIANT = 17
+
     SET_AMBIENT_NOISE_TOGGLE_OPTIONS = 18
     GET_AMBIENT_NOISE_TOGGLE_OPTIONS = 19
 
@@ -46,3 +53,7 @@ class Misc(Enum):
         except KeyError:
             # Handle the case where the name doesn't exist
             raise ValueError(f"{name} is not a valid {cls.__name__}")
+
+    @property
+    def payload_parser(self) -> PayloadParsers:
+        pass
