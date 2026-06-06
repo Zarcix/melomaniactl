@@ -1,1 +1,1 @@
-from .base import GestureIds
+from .ids import GestureIds

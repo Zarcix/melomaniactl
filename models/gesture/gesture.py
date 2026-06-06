@@ -25,4 +25,4 @@ class Gesture(Enum):
     @classmethod
     def parse(cls, payload: list[int]) -> Self:
         print(f"Gesture Parsing: Unimplemented! Payload={payload}")
-        return None
+        return payload
