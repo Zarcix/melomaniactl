@@ -1,1 +1,1 @@
-from .base import CodecIds
+from .ids import CodecIds
