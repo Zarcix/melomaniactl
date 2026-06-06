@@ -4,4 +4,5 @@ from typing import Self
 class SleepMode(Enum):
     @classmethod
     def parse(cls, payload: list[int]) -> Self:
-        raise NotImplementedError(f"Payload={payload}")
+        print(f"Sleep Mode Parsing: Unimplemented! Payload={payload}")
+        return None
