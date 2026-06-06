@@ -61,8 +61,7 @@ class Packet:
     def __str__(self):
         feature = self.feature_id.name
         subfeature = self.subfeature_id.name
-        payload = [f"{byte:02x}" for byte in self.payload]
-        # payload = self.subfeature_id.payload_parser.parse(self.payload)
+        payload = self.subfeature_id.payload_parser.parse(self.payload)
 
         packet_type = self.packet_type.name
         packet_direction = self.packet_dir.name
