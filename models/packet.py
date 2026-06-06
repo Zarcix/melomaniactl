@@ -1,6 +1,8 @@
 from enum import Enum
 from models import Feature, Codec, Misc, Mode
-from typing import Optional, Self
+from typing import Optional, Self, Iterable
+
+import math
 
 ''' Packet Structure
     AA BB CC DD EEEE FFFF G...G
@@ -38,13 +40,13 @@ class Packet:
     packet_type: PacketTypes
     feature_id: Feature
     subfeature_id: Codec | Feature | Mode | Misc
-    payload: Optional[int]
+    payload: Iterable[int] # This needs to be iterable since "00 01 01" is valid with a length of 3
 
     def __init__(
         self,
         feature_id: Feature,
         subfeature_id: Codec | Feature | Mode | Misc,
-        payload: Optional[int],
+        payload: Iterable[int],
         packet_type: PacketTypes,
         packet_direction: PacketDirection,
         packet_flag: PacketFlags
@@ -59,7 +61,7 @@ class Packet:
     def __str__(self):
         feature = self.feature_id.name
         subfeature = self.subfeature_id.name
-        payload = hex(self.payload) if self.payload is not None else "None"
+        payload = [f"{byte:02x}" for byte in self.payload]
 
         packet_type = self.packet_type.name
         packet_direction = self.packet_dir.name
@@ -71,7 +73,7 @@ class Packet:
             cls,
             feature_id: Feature,
             subfeature_id: Codec | Feature | Mode | Misc,
-            payload: Optional[int]
+            payload: Iterable[int]
         ) -> Self:
         return cls(feature_id, subfeature_id, payload, PacketTypes.COMMAND, PacketDirection.SEND, PacketFlags.NONE)
 
@@ -86,11 +88,11 @@ class Packet:
         payload_length = _int_from_hexstr(hex_str[6:8])
         _vendor_id = _int_from_hexstr(hex_str[8:12])
         command = _int_from_hexstr(hex_str[12:16])
-        payload = _int_from_hexstr(hex_str[16: 16 + 2 * payload_length])
+        payload = [int(val, 16) for val in bytes.fromhex(hex_str[16:]).hex(" ").split()]
 
-        feature = Feature(command >> 9)
-        packet_type = PacketTypes(command >> 7)
-        subfeature = feature.subfeature_cls(command & 7)
+        feature = Feature(command >> 9 & 0x7f)
+        packet_type = PacketTypes(command >> 7 & 0x03)
+        subfeature = feature.subfeature_cls(command & 0x7f)
 
         packet_dir = PacketDirection(dir)
         packet_flag = PacketFlags(flags)
@@ -106,13 +108,8 @@ class Packet:
         command = (self.feature_id.value << 9 | self.packet_type.value << 7 | self.subfeature_id.value)
         command_hex = f"{command:04x}"
 
-        payload_hex = ""
-        payload_length = 0
-        if self.payload is not None:
-            payload_length = len(f"{self.payload:x}")
-            payload_hex = ('0' * (payload_length % 2)) + f"{self.payload:x}"
+        length_hex = f"{len(self.payload):02x}"
+        payload_hex = [f"{byte:02x}" for byte in self.payload]
 
-        length_hex = f"{payload_length:02x}"
-
-        packet = f"{sof_hex}{direction_hex}{flag_hex}{length_hex}{vendor_id_hex}{command_hex}{payload_hex}"
+        packet = f"{sof_hex}{direction_hex}{flag_hex}{length_hex}{vendor_id_hex}{command_hex}{"".join(payload_hex)}"
         return bytes.fromhex(packet)
