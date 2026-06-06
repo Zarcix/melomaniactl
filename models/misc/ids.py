@@ -2,10 +2,12 @@ from enum import Enum
 from typing import Self, Tuple
 
 from .manufacturer import Manufacturer
+from .model import Model
 from .language import Language
 
 type PayloadParsers = Tuple[
     Manufacturer,
+    Model,
     Language,
 ]
 
@@ -61,4 +63,6 @@ class MiscIds(Enum):
         match (self):
             case self.GET_MANUFACTURER:
                 return Manufacturer
+            case self.GET_MODEL:
+                return Model
         pass

@@ -1,14 +1,13 @@
-from enum import Enum
 from typing import Self
 
 class Manufacturer:
-    name: str
+    manufacturer_name: str
 
     def __init__(self, name: str):
-        self.name = name
+        self.manufacturer_name = name
 
     def __str__(self):
-        return self.name
+        return self.manufacturer_name
 
     @classmethod
     def parse(cls, payload: list[int]) -> Self | list[int]:
