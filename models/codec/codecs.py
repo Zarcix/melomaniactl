@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Self
 
 class Codecs(Enum):
     SBC = 0
@@ -13,3 +14,14 @@ class Codecs(Enum):
     LDAC = 9
     LHDC = 10
     LC3 = 11
+
+    @classmethod
+    def parse(cls, payload: list[int]) -> Self:
+        # Payload: [Codec, some other number]
+        if len(payload) < 1:
+            return None
+
+        try:
+            return cls(payload[0])
+        except:
+            return None
