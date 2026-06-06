@@ -3,6 +3,10 @@ from typing import Self
 
 from .gaming_mode import GamingMode
 from .proximity_mode import ProximityMode
+from .flight_mode import FlightMode
+from .mono_mode import MonoMode
+from .sleep_mode import SleepMode
+from .audio_mode import AudioMode
 
 type PayloadParsers = GamingMode | ProximityMode
 
@@ -37,6 +41,13 @@ class ModeIds(Enum):
         match (self):
             case self.SET_GAMING_MODE | self.GET_GAMING_MODE:
                 return GamingMode
+            case self.SET_FLIGHT_MODE | self.GET_FLIGHT_MODE:
+                return FlightMode
             case self.SET_PROXIMITY_MODE | self.GET_PROXIMITY_MODE:
                 return ProximityMode
-        return None
+            case self.SET_MONO_MODE | self.GET_MONO_MODE:
+                return MonoMode
+            case self.SET_SLEEP_MODE | self.GET_SLEEP_MODE:
+                return SleepMode
+            case self.GET_AUDIO_MODE:
+                return AudioMode

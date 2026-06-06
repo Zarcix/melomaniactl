@@ -6,11 +6,11 @@ class GamingMode(Enum):
     ON = 1
 
     @classmethod
-    def parse(cls, payload: list[int]) -> Self:
+    def parse(cls, payload: list[int]) -> Self | list[int]:
         if len(payload) != 1:
-            return None
+            return payload
 
         try:
             return cls(payload[0])
         except:
-            return None
+            return payload
