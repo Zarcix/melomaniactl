@@ -3,11 +3,13 @@ from typing import Self, Tuple
 
 from .manufacturer import Manufacturer
 from .model import Model
+from .api_level import APILevel
 from .language import Language
 
 type PayloadParsers = Tuple[
     Manufacturer,
     Model,
+    APILevel,
     Language,
 ]
 
@@ -65,4 +67,6 @@ class MiscIds(Enum):
                 return Manufacturer
             case self.GET_MODEL:
                 return Model
+            case self.GET_API_LEVEL:
+                return APILevel
         pass
