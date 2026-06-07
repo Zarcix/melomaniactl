@@ -7,8 +7,18 @@ from .api_level import APILevel
 from .battery_state import BatteryState
 from .language import Language
 from .auto_power_down_timeout import AutoPowerDownTimeout
+from .ambient_noise_mode import AmbientNoiseMode
+from .ambient_noise_toggle_option import AmbientNoiseToggleOption
+from .loudness import Loudness
+from .device import ConnectedDevice
+from .side_tone import SideTone
+
+class GenericParser:
+    def parse(payload: list[int]) -> list[int]:
+        return payload
 
 type PayloadParsers = Tuple[
+    GenericParser,
     Manufacturer,
     Model,
     APILevel,
@@ -19,6 +29,12 @@ type PayloadParsers = Tuple[
     AutoPowerDownTimeout,
     # Left Right Balance
     # Headphones Alert
+    AmbientNoiseMode,
+    # Variant
+    AmbientNoiseToggleOption,
+    Loudness,
+    ConnectedDevice,
+    SideTone,
 ]
 
 class MiscIds(Enum):
@@ -84,7 +100,18 @@ class MiscIds(Enum):
             case self.GET_AUTO_POWER_DOWN_TIMEOUT | self.SET_AUTO_POWER_DOWN_TIMEOUT:
                 return AutoPowerDownTimeout
             case self.SET_LEFT_RIGHT_BALANCE | self.GET_LEFT_RIGHT_BALANCE:
-                raise NotImplementedError("Left Right Balance")
+                return GenericParser
             case self.SET_FIND_HEADPHONES_ALERT | self.GET_FIND_HEADPHONES_ALERT:
-                raise NotImplementedError("Headphones Alert")
-        pass
+                return GenericParser
+            case self.SWITCH_AMBIENT_NOISE_MODE | self.SET_AMBIENT_NOISE_MODE | self.GET_AMBIENT_NOISE_MODE:
+                return AmbientNoiseMode
+            case self.GET_VARIANT:
+                return GenericParser
+            case self.SET_AMBIENT_NOISE_TOGGLE_OPTIONS | self.GET_AMBIENT_NOISE_TOGGLE_OPTIONS:
+                return AmbientNoiseToggleOption
+            case self.SET_LOUDNESS | self.GET_LOUDNESS:
+                return Loudness
+            case self.GET_DEVICES | self.CONNECT_DEVICE | self.DISCONNECT_DEVICE:
+                return ConnectedDevice
+            case self.SET_SIDE_TONE | self.GET_SIDE_TONE:
+                return SideTone
