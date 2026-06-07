@@ -6,12 +6,17 @@ from .model import Model
 from .api_level import APILevel
 from .battery_state import BatteryState
 from .language import Language
+from .auto_power_down_timeout import AutoPowerDownTimeout
 
 type PayloadParsers = Tuple[
     Manufacturer,
     Model,
     APILevel,
+    BatteryState,
+    # Firmware Versions
+    # Bluetooth Addresses
     Language,
+    AutoPowerDownTimeout,
 ]
 
 class MiscIds(Enum):
@@ -72,4 +77,8 @@ class MiscIds(Enum):
                 return APILevel
             case self.GET_BATTERY_STATE:
                 return BatteryState
+            case self.GET_LANGUAGE | self.SET_LANGUAGE:
+                return Language
+            case self.GET_AUTO_POWER_DOWN_TIMEOUT | self.SET_AUTO_POWER_DOWN_TIMEOUT:
+                return AutoPowerDownTimeout
         pass
