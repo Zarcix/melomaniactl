@@ -4,6 +4,7 @@ from typing import Self, Tuple
 from .manufacturer import Manufacturer
 from .model import Model
 from .api_level import APILevel
+from .battery_state import BatteryState
 from .language import Language
 
 type PayloadParsers = Tuple[
@@ -69,4 +70,6 @@ class MiscIds(Enum):
                 return Model
             case self.GET_API_LEVEL:
                 return APILevel
+            case self.GET_BATTERY_STATE:
+                return BatteryState
         pass
