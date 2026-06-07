@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Self
 
 class Language(Enum):
     TONES = 0
@@ -13,3 +14,10 @@ class Language(Enum):
     FRENCH = 9
     CELEBRITY = 10
     OFF = 255
+
+    @classmethod
+    def parse(cls, payload: list[int]) -> Self | list[int]:
+        if len(payload) != 1:
+            print(f"Language Parse Failed: Invalid Payload Size")
+            return payload
+        return cls(payload[0])

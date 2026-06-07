@@ -17,6 +17,8 @@ type PayloadParsers = Tuple[
     # Bluetooth Addresses
     Language,
     AutoPowerDownTimeout,
+    # Left Right Balance
+    # Headphones Alert
 ]
 
 class MiscIds(Enum):
@@ -81,4 +83,8 @@ class MiscIds(Enum):
                 return Language
             case self.GET_AUTO_POWER_DOWN_TIMEOUT | self.SET_AUTO_POWER_DOWN_TIMEOUT:
                 return AutoPowerDownTimeout
+            case self.SET_LEFT_RIGHT_BALANCE | self.GET_LEFT_RIGHT_BALANCE:
+                raise NotImplementedError("Left Right Balance")
+            case self.SET_FIND_HEADPHONES_ALERT | self.GET_FIND_HEADPHONES_ALERT:
+                raise NotImplementedError("Headphones Alert")
         pass
