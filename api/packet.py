@@ -1,8 +1,8 @@
 from enum import Enum
-from models import FeatureIds, CodecIds, MiscIds, ModeIds, GestureIds
-from typing import Optional, Self, Iterable
+from typing import Self, Iterable
 
-import math
+from .feature_ids import FeatureIds
+from .features import CodecIds, GestureIds, ModeIds, MiscIds
 
 ''' Packet Structure
     AA BB CC DD EEEE FFFF G...G
@@ -39,7 +39,7 @@ class Packet:
     flags: PacketFlags
     packet_type: PacketTypes
     feature_id: FeatureIds
-    subfeature_id: CodecIds | FeatureIds | ModeIds | MiscIds
+    subfeature_id: CodecIds | GestureIds | ModeIds | MiscIds
     payload: Iterable[int] # This needs to be iterable since "00 01 01" is valid with a length of 3
 
     def __init__(
@@ -59,14 +59,18 @@ class Packet:
         self.packet_type = packet_type
 
     def __str__(self):
-        feature = self.feature_id.name
-        subfeature = self.subfeature_id.name
-        payload = self.subfeature_id.payload_parser.parse(self.payload)
+        packet_info = [
+            f"Type: {self.packet_type.name}",
+            f"Direction: {self.packet_dir.name}",
+            f"Flag: {self.flags.name}",
+            f"Feature: {self.feature_id.name}",
+            f"SubFeature: {self.subfeature_id.name}",
+        ]
 
-        packet_type = self.packet_type.name
-        packet_direction = self.packet_dir.name
-        packet_flag = self.flags.name
-        return f"Type: {packet_type}, Direction: {packet_direction}, Flag: {packet_flag} | Feature: {feature}, Subfeature: {subfeature}, Payload: {payload} | Hex: {self.to_hex().hex()}"
+        if len(self.payload) > 0:
+            packet_info.append("Payload: " + f",".join(str(pl) for pl in self.payload))
+
+        return " | ".join(packet_info)
 
     @classmethod
     def from_command(
@@ -85,7 +89,7 @@ class Packet:
         _sof = _int_from_hexstr(hex_str[0:2])
         dir = _int_from_hexstr(hex_str[2:4])
         flags = _int_from_hexstr(hex_str[4:6])
-        payload_length = _int_from_hexstr(hex_str[6:8])
+        _payload_length = _int_from_hexstr(hex_str[6:8])
         _vendor_id = _int_from_hexstr(hex_str[8:12])
         command = _int_from_hexstr(hex_str[12:16])
         payload = [int(val, 16) for val in bytes.fromhex(hex_str[16:]).hex(" ").split()]

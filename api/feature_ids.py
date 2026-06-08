@@ -1,10 +1,12 @@
 from enum import Enum
 from typing import Type
 
-from .misc import MiscIds
-from .mode import ModeIds
-from .codec import CodecIds
-from .gesture import GestureIds
+from .features import (
+    CodecIds,
+    GestureIds,
+    ModeIds,
+    MiscIds
+)
 
 class FeatureIds(Enum):
     # The tuple is passed to __new__
