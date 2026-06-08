@@ -82,6 +82,26 @@ class MeloControlService(dbus.service.Object):
         payload = packet.to_hex()
         self.sock.send(payload)
 
+    @dbus.service.method("com.meloadapter.MeloControl", out_signature="a{sas}")
+    def GetFeatures(self, query: str = ""):
+        result = {}
+
+        query = query.strip().lower()
+
+        for feature in FeatureIds:
+            feature_name = feature.name
+
+            # optional filter
+            if query and query not in feature_name.lower():
+                continue
+
+            result[feature_name] = [
+                s.name for s in feature.subfeature_cls
+            ]
+
+        return result
+
+
     @dbus.service.method("com.meloadapter.MeloControl")
     def Disconnect(self):
         if self.sock:
