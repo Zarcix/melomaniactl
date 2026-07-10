@@ -9,18 +9,52 @@ from gi.repository import GLib
 from api import FeatureIds, Packet
 
 BD_ADDR = "00:1F:F0:24:2D:AC"
+DEVICE_PATH = f"/org/bluez/hci0/dev_{BD_ADDR.replace(':', '_')}"
 UUID = "00001101-0000-1000-8000-00805f9b34fb"
 
 class MeloControlService(dbus.service.Object):
     def __init__(self, bus, object_path="/com/meloadapter/MeloControl"):
         super().__init__(bus, object_path)
         self.sock = None
-        self.connect_device()
+        self.bus = bus
+
+        self.system_bus = dbus.SystemBus()
+        self.system_bus.add_signal_receiver(
+            self.on_properties_changed,
+            bus_name="org.bluez",
+            signal_name="PropertiesChanged",
+            path=DEVICE_PATH,
+            dbus_interface="org.freedesktop.DBus.Properties"
+        )
+
+        self.Connect()
+
+    def on_properties_changed(self, interface, changed, invalidated):
+        if "Connected" in changed:
+            is_connected = changed["Connected"]
+            if not is_connected and self.sock:
+                print("BlueZ signaled disconnection.")
+                self.Disconnect()
+            elif is_connected and not self.sock:
+                print("BlueZ signaled connection. Re-initializing socket...")
+                self.Connect()
 
     def on_data_received(self, source, condition):
         buffer = bytearray()
 
-        data = self.sock.recv(8 + 0xFF)
+
+        try:
+            data = self.sock.recv(8 + 0xFF)
+            if not data:
+                self.Disconnect()
+                return False
+        except BlockingIOError:
+            return True
+        except Exception as e:
+            print(f"Unexpected error: {e}")
+            self.Disconnect()
+            return False
+
         if not data: return False
         buffer.extend(data)
 
@@ -47,24 +81,6 @@ class MeloControlService(dbus.service.Object):
             )
 
         return True
-
-    def connect_device(self):
-        print(f"Discovering SPP service on {BD_ADDR}...")
-
-        services = bluetooth.find_service(uuid=UUID, address=BD_ADDR)
-        if not services:
-            raise RuntimeError("No RFCOMM service found on this device")
-
-        port = services[0]["port"]
-        print(f"Connecting to {BD_ADDR} on RFCOMM port {port}...")
-
-        self.sock = socket.socket(socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_RFCOMM)
-        self.sock.connect((BD_ADDR, port))
-
-        self.sock.setblocking(False)
-        GLib.io_add_watch(self.sock.fileno(), GLib.IO_IN, self.on_data_received)
-
-        print("Connected successfully.")
 
     @dbus.service.signal("com.meloadapter.MeloControl", signature="ssssss")
     def CommandReceived(self, direction: str, flags: str, type: str, feature: str, subfeature: str, payload: str):
@@ -101,6 +117,24 @@ class MeloControlService(dbus.service.Object):
 
         return result
 
+    @dbus.service.method("com.meloadapter.MeloControl")
+    def Connect(self):
+        print(f"Discovering SPP service on {BD_ADDR}...")
+
+        services = bluetooth.find_service(uuid=UUID, address=BD_ADDR)
+        if not services:
+            raise RuntimeError("No RFCOMM service found on this device")
+
+        port = services[0]["port"]
+        print(f"Connecting to {BD_ADDR} on RFCOMM port {port}...")
+
+        self.sock = socket.socket(socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_RFCOMM)
+        self.sock.connect((BD_ADDR, port))
+
+        self.sock.setblocking(False)
+        GLib.io_add_watch(self.sock.fileno(), GLib.IO_IN, self.on_data_received)
+
+        print("Connected successfully.")
 
     @dbus.service.method("com.meloadapter.MeloControl")
     def Disconnect(self):
