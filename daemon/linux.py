@@ -12,6 +12,8 @@ BD_ADDR = "00:1F:F0:24:2D:AC"
 DEVICE_PATH = f"/org/bluez/hci0/dev_{BD_ADDR.replace(':', '_')}"
 UUID = "00001101-0000-1000-8000-00805f9b34fb"
 
+MAX_BACKOFF = 32
+
 class MeloControlService(dbus.service.Object):
     def __init__(self, bus, object_path="/com/meloadapter/MeloControl"):
         super().__init__(bus, object_path)
@@ -41,7 +43,6 @@ class MeloControlService(dbus.service.Object):
 
     def on_data_received(self, source, condition):
         buffer = bytearray()
-
 
         try:
             data = self.sock.recv(8 + 0xFF)
@@ -116,25 +117,36 @@ class MeloControlService(dbus.service.Object):
             ]
 
         return result
-
-    @dbus.service.method("com.meloadapter.MeloControl")
+    
     def Connect(self):
-        print(f"Discovering SPP service on {BD_ADDR}...")
+        """Entry point for connection, initiates the non-blocking retry loop."""
+        self.retry_attempt = 0
+        self._attempt_connection()
 
-        services = bluetooth.find_service(uuid=UUID, address=BD_ADDR)
-        if not services:
-            raise RuntimeError("No RFCOMM service found on this device")
+    def _attempt_connection(self):
+        try:
+            print(f"Discovering SPP service on {BD_ADDR}...")
+            services = bluetooth.find_service(uuid=UUID, address=BD_ADDR)
+            
+            if not services:
+                raise RuntimeError("Service not found")
 
-        port = services[0]["port"]
-        print(f"Connecting to {BD_ADDR} on RFCOMM port {port}...")
-
-        self.sock = socket.socket(socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_RFCOMM)
-        self.sock.connect((BD_ADDR, port))
-
-        self.sock.setblocking(False)
-        GLib.io_add_watch(self.sock.fileno(), GLib.IO_IN, self.on_data_received)
-
-        print("Connected successfully.")
+            port = services[0]["port"]
+            self.sock = socket.socket(socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_RFCOMM)
+            self.sock.connect((BD_ADDR, port))
+            self.sock.setblocking(False)
+            
+            GLib.io_add_watch(self.sock.fileno(), GLib.IO_IN, self.on_data_received)
+            print("Connected successfully.")
+            self.retry_attempt = 0
+            
+        except Exception as e:
+            self.retry_attempt += 1
+            delay = min(2 ** self.retry_attempt, MAX_BACKOFF)
+            
+            print(f"Connection failed: {e}. Retrying in {delay}s...")
+            GLib.timeout_add_seconds(delay, self._attempt_connection)
+            return False
 
     @dbus.service.method("com.meloadapter.MeloControl")
     def Disconnect(self):
