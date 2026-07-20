@@ -12,6 +12,6 @@ class Model:
     @classmethod
     def parse(cls, payload: list[int]) -> Self | list[int]:
         try:
-            return cls(bytes(payload).decode())
+            return cls(bytes(payload).decode().strip("\x00"))
         except:
             return payload
