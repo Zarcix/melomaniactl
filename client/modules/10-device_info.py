@@ -1,9 +1,11 @@
 from .base import BaseModule
 from gi.repository import Gtk, Adw, GLib
+
 from parsers.misc.battery_state import BatteryState
 from parsers.misc.manufacturer import Manufacturer
 from parsers.misc.model import Model
 from parsers.misc.firmware_version import FirmwareVersion
+from parsers.codec.codecs import Codecs
 
 from util import convert_list_payload
 
@@ -43,11 +45,18 @@ class DeviceInfoModule(BaseModule):
         self.firmware_row.add_suffix(self.firmware_label)
         self.group.add(self.firmware_row)
 
+    def _setup_codec_row(self):
+        self.codec_row = Adw.ActionRow(title="Current Codec")
+        self.codec_label = Gtk.Label(label="Loading...")
+        self.codec_row.add_suffix(self.codec_label)
+        self.group.add(self.codec_row)
+
     def _setup_callbacks(self):
         self.dbus.on_event("MISC", "GET_BATTERY_STATE", self.battery_update)
         self.dbus.on_event("MISC", "GET_MANUFACTURER", self.manufacturer_update)
         self.dbus.on_event("MISC", "GET_MODEL", self.model_update)
         self.dbus.on_event("MISC", "GET_FIRMWARE_VERSIONS", self.firmware_update)
+        self.dbus.on_event("CODEC", "GET_CURRENT_CODEC", self.codec_update)
         self.refresh_data()
 
     def setup_ui(self) -> Adw.Clamp:
@@ -70,6 +79,7 @@ class DeviceInfoModule(BaseModule):
         self._setup_model_row()
         self._setup_battery_row()
         self._setup_firmware_row()
+        self._setup_codec_row()
 
         self._setup_callbacks()
 
@@ -80,6 +90,7 @@ class DeviceInfoModule(BaseModule):
         self.dbus.send("misc", "GET_MODEL")
         self.dbus.send("misc", "GET_BATTERY_STATE")
         self.dbus.send("misc", "GET_FIRMWARE_VERSIONS")
+        self.dbus.send("codec", "GET_CURRENT_CODEC")
 
         if sender is not None:
             toast = Adw.Toast.new("Refreshing Device Status...")
@@ -116,3 +127,7 @@ class DeviceInfoModule(BaseModule):
     def firmware_update(self, dir, flags, ptype, subf, pay):
         firmware = FirmwareVersion.parse(convert_list_payload(pay))
         GLib.idle_add(self.firmware_label.set_text, str(firmware))
+    
+    def codec_update(self, dir, flags, ptype, subf, pay):
+        codec = Codecs.parse(convert_list_payload(pay))
+        GLib.idle_add(self.codec_label.set_text, codec.name)
