@@ -5,7 +5,7 @@ from parsers.misc.manufacturer import Manufacturer
 from parsers.misc.model import Model
 from parsers.misc.firmware_version import FirmwareVersion
 
-from util import _convert_list_payload
+from util import convert_list_payload
 
 BATTERY_DISPLAY_CONFIG = {
     "Melomania P100 SE": {
@@ -86,11 +86,11 @@ class DeviceInfoModule(BaseModule):
             self.window.toast.add_toast(toast)
 
     def manufacturer_update(self, dir, flags, ptype, subf, pay):
-        mfg = Manufacturer.parse(_convert_list_payload(pay))
+        mfg = Manufacturer.parse(convert_list_payload(pay))
         GLib.idle_add(self.mfg_label.set_text, str(mfg))
 
     def model_update(self, dir, flags, ptype, subf, pay):
-        mdl = Model.parse(_convert_list_payload(pay))
+        mdl = Model.parse(convert_list_payload(pay))
         self.current_model_name = str(mdl)
         GLib.idle_add(self.model_label.set_text, self.current_model_name)
 
@@ -107,12 +107,12 @@ class DeviceInfoModule(BaseModule):
         return " | ".join(parts) if parts else "No data"
 
     def battery_update(self, dir, flags, ptype, subf, pay):
-        state = BatteryState.parse(_convert_list_payload(pay))
+        state = BatteryState.parse(convert_list_payload(pay))
         model_name = getattr(self, "current_model_name", "Default")        
 
         display = DeviceInfoModule._format_battery_text(state, model_name)
         GLib.idle_add(self.battery_label.set_text, display)
 
     def firmware_update(self, dir, flags, ptype, subf, pay):
-        firmware = FirmwareVersion.parse(_convert_list_payload(pay))
+        firmware = FirmwareVersion.parse(convert_list_payload(pay))
         GLib.idle_add(self.firmware_label.set_text, str(firmware))

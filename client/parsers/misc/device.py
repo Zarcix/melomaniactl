@@ -33,6 +33,9 @@ class ConnectedDevice:
         )
         return ", ".join(text)
 
+    def is_connected(self):
+        return self.conn_status in [ConnectionStatus.CONNECTED, ConnectionStatus.MGMT]
+
     @classmethod
     def parse(cls, payload: list[int]) -> Self | list[int]:
         if len(payload) != 26:
