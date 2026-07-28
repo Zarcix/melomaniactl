@@ -37,8 +37,12 @@ class MeloWindow(Adw.ApplicationWindow):
         reload_btn.connect("clicked", self.refresh_all)
         header.pack_start(reload_btn)
 
+        scrolled = Gtk.ScrolledWindow()
+        scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        toolbar.set_content(scrolled)
+
         self.main_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
-        toolbar.set_content(self.main_container)
+        scrolled.set_child(self.main_container)
 
         self.modules = []
         for module_cls in modules.get_all_modules():
