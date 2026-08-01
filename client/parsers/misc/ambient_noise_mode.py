@@ -21,6 +21,9 @@ class AmbientNoiseMode(Enum):
     TRANSPARENCY_HIGH = 4
     TRANSPARENCY_VOICE_FOCUS = 6
 
+    def __str__(self):
+        return self.name.replace("_", " ")
+
     @property
     def category(self) -> AmbientNoiseCategory:
         """The SWITCH_AMBIENT_NOISE_MODE category this detailed mode belongs to."""
