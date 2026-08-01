@@ -1,12 +1,6 @@
 from gi.repository import Gtk, Adw, GLib
 
-from parsers.misc.loudness import Loudness
-from parsers.misc.side_tone import SideTone
-from parsers.mode.gaming_mode import GamingMode
-from parsers.mode.proximity_mode import ProximityMode
-
 from parsers.misc.auto_power_down_timeout import AutoPowerDownTimeout
-from parsers.misc.language import Language
 
 from .base import BaseModule
 
