@@ -59,8 +59,7 @@ class ConnectionsModule(BaseModule):
         GLib.idle_add(self._rebuild_connection_list)
 
     def connections_changed(self, dir, flags, ptype, subf, pay):
-        time.sleep(5)
-        self.refresh_data()
+        GLib.timeout_add_seconds(3, lambda: (self.refresh_data(), False)[1])
 
     def _rebuild_connection_list(self):
         for row in self.device_rows:
