@@ -28,6 +28,14 @@ class AutoPowerDownModule(BaseModule):
             spin.set_valign(Gtk.Align.CENTER)
             spin.set_numeric(True)
             spin.set_width_chars(3)
+            spin.set_focusable(True)
+
+            # This is here to block scrolling events
+            evctl = Gtk.EventControllerScroll.new(Gtk.EventControllerScrollFlags.VERTICAL)
+            evctl.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
+            evctl.connect("scroll", lambda *_: True)
+            spin.add_controller(evctl)
+
             spin.connect("value-changed", self.autopowerdown_set)
 
         colon1 = Gtk.Label(label=":")
