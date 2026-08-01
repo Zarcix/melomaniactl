@@ -13,7 +13,7 @@ from util import convert_list_payload
 
 class DeviceControlsModule(BaseModule):
     def _setup_loudness_row(self):
-        self.loudness_row = Adw.ActionRow(title="Loudness")
+        self.loudness_row = Adw.ActionRow(title="DynaEQ (Loudness)")
         self.loudness_switch = Gtk.Switch()
         self.loudness_switch.set_valign(Gtk.Align.CENTER)
         self.loudness_switch.connect("state-set", self.loudness_set)
