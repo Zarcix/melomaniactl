@@ -122,6 +122,7 @@ class MeloControlService(dbus.service.Object):
         """Entry point for connection, initiates the non-blocking retry loop."""
         self.retry_attempt = 0
         self._attempt_connection()
+        self.ConnectionChanged()
 
     def _attempt_connection(self):
         try:
@@ -154,6 +155,16 @@ class MeloControlService(dbus.service.Object):
             self.sock.close()
             self.sock = None
             print("Device disconnected.")
+
+        self.ConnectionChanged()
+
+    @dbus.service.method("com.meloadapter.MeloControl", out_signature="b")
+    def ConnectionStatus(self):
+        return self.sock != None
+
+    @dbus.service.signal("com.meloadapter.MeloControl")
+    def ConnectionChanged(self):
+        pass
 
 def main():
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
